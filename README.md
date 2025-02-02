@@ -134,23 +134,3 @@ deactivate
 ```
 
 ---
-
-## **10. Troubleshooting**
-- **Error: "Module not found"** → Make sure you activated the virtual environment and installed dependencies.
-- **Database not updating** → Delete `strava.db` and restart the Flask server.
-- **CORS issues** → Ensure Flask-CORS is installed (`pip install flask-cors`).
-- **Invalid Strava API credentials** → Double-check your `.env` file.
-
----
-
-## **Next Steps**
-✅ Secure API keys using `.env`
-✅ Fetch all Strava activities
-✅ Display activities with minimaps
-🚀 Future improvements:
-- Add authentication (OAuth login)
-- Improve UI using a frontend framework (React/Vue)
-- Deploy to a cloud server
-
-Let me know if you need additional guidance! 🚴‍♂️💨
-
