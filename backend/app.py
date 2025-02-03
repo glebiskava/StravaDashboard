@@ -1,9 +1,14 @@
 from flask import Flask, jsonify, request, send_from_directory
+from flask_cors import CORS
+from dotenv import load_dotenv
 import sqlite3
 import requests
 import os
 
+load_dotenv()
+
 app = Flask(__name__, static_folder="../frontend")
+CORS(app)
 
 STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
 STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
@@ -23,48 +28,99 @@ def get_access_token():
     )
     return response.json().get("access_token")
 
-
 @app.route("/activities", methods=["GET"])
 def get_activities():
-    """Fetches activities from Strava API and stores them in SQLite."""
+    """Fetch all activities from Strava API and store them in SQLite."""
     access_token = get_access_token()
     if not access_token:
         return jsonify({"error": "Could not get access token"}), 401
 
     headers = {"Authorization": f"Bearer {access_token}"}
-    response = requests.get(f"{STRAVA_API_URL}/athlete/activities?per_page=200", headers=headers)
+    all_activities = []
+    page = 1
+    per_page = 200  # Max allowed per request
 
-    if response.status_code != 200:
-        return jsonify({"error": "Failed to fetch activities"}), 500
+    while True:
+        response = requests.get(
+            f"{STRAVA_API_URL}/athlete/activities",
+            headers=headers,
+            params={"page": page, "per_page": per_page},
+        )
 
-    activities = response.json()
+        if response.status_code != 200:
+            return jsonify({"error": "Failed to fetch activities"}), 500
+
+        activities = response.json()
+        if not activities:
+            break  # Stop fetching if no more activities are returned
+
+        all_activities.extend(activities)
+        page += 1  # Move to the next page
 
     # Store activities in the database
     conn = sqlite3.connect("strava.db")
     cursor = conn.cursor()
+    
+    #drop table if it exists
+    cursor.execute("DROP TABLE IF EXISTS activities")
 
+    # Create or update the database schema
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS activities (
             id INTEGER PRIMARY KEY,
             name TEXT,
             distance REAL,
             moving_time INTEGER,
+            average_speed REAL,
+            max_speed REAL,
+            average_cadence REAL,
+            average_temp INTEGER,
+            has_heartrate BOOLEAN,
+            average_heartrate REAL,
+            max_heartrate REAL,
+            elev_high REAL,
+            elev_low REAL,
+            calories REAL,
             total_elevation_gain REAL,
-            start_date TEXT
+            start_date TEXT,
+            type TEXT,
+            sport_type TEXT,
+            location_country TEXT,
+            kudos_count INTEGER
         )"""
     )
 
-    for act in activities:
+    for act in all_activities:
         cursor.execute(
-            "INSERT OR IGNORE INTO activities VALUES (?, ?, ?, ?, ?, ?)",
-            (act["id"], act["name"], act["distance"], act["moving_time"], act["total_elevation_gain"], act["start_date"]),
+            "INSERT OR IGNORE INTO activities VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                act["id"],
+                act["name"],
+                act["distance"],
+                act["moving_time"],
+                act.get("average_speed", None),
+                act.get("max_speed", None),
+                act.get("average_cadence", None),
+                act.get("average_temp", None),
+                act.get("has_heartrate", False),
+                act.get("average_heartrate", None),
+                act.get("max_heartrate", None),
+                act.get("elev_high", None),
+                act.get("elev_low", None),
+                act.get("calories", None),
+                act["total_elevation_gain"],
+                act["start_date"],
+                act["type"],
+                act["sport_type"],
+                act["location_country"],
+                act["kudos_count"],                
+            ),
         )
 
     conn.commit()
     conn.close()
 
-    return jsonify(activities)
-
+    return jsonify(all_activities)
 
 @app.route("/activities/local", methods=["GET"])
 def get_local_activities():
