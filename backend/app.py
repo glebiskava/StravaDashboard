@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 import sqlite3
 import requests
 import os
+import time
+import json
 
 load_dotenv()
 
@@ -15,8 +17,34 @@ STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
 STRAVA_REFRESH_TOKEN = os.getenv("STRAVA_REFRESH_TOKEN")
 STRAVA_API_URL = "https://www.strava.com/api/v3"
 
+TOKEN_FILE = "token.json"
+
+def load_token():
+    """Load access token and expiry time from a file."""
+    if os.path.exists(TOKEN_FILE):
+        with open(TOKEN_FILE, "r") as file:
+            try:
+                token_data = json.load(file)
+                return token_data.get("access_token"), token_data.get("expires_at")
+            except json.JSONDecodeError:
+                return None, 0
+    return None, 0
+
+def save_token(access_token, expires_at):
+    """Save access token and expiry time to a file."""
+    with open(TOKEN_FILE, "w") as file:
+        json.dump({"access_token": access_token, "expires_at": expires_at}, file)
+
 def get_access_token():
-    """Refresh and retrieve Strava API access token."""
+    """Check if the access token is expired and refresh only if needed."""
+    access_token, expires_at = load_token()
+
+    # If token is still valid (at least 5 minutes left), return it
+    if access_token and time.time() < expires_at - 300:  # 5 minutes before expiry
+        return access_token
+
+    print("Refreshing Strava access token...")
+
     response = requests.post(
         "https://www.strava.com/oauth/token",
         data={
@@ -26,45 +54,50 @@ def get_access_token():
             "grant_type": "refresh_token",
         },
     )
-    return response.json().get("access_token")
+
+    if response.status_code == 200:
+        token_data = response.json()
+        access_token = token_data["access_token"]
+        expires_at = token_data["expires_at"]  # Strava provides expiry timestamp
+
+        # Save the new token to the file
+        save_token(access_token, expires_at)
+
+        return access_token
+    else:
+        print("Error refreshing access token:", response.text)
+        return None  # Handle errors gracefully
 
 @app.route("/activities", methods=["GET"])
 def get_activities():
-    """Fetch all activities from Strava API and store them in SQLite."""
+    """Fetch only 10 latest activities from Strava API and store them in SQLite, including polylines."""
     access_token = get_access_token()
     if not access_token:
         return jsonify({"error": "Could not get access token"}), 401
 
     headers = {"Authorization": f"Bearer {access_token}"}
-    all_activities = []
-    page = 1
-    per_page = 200  # Max allowed per request
 
-    while True:
-        response = requests.get(
-            f"{STRAVA_API_URL}/athlete/activities",
-            headers=headers,
-            params={"page": page, "per_page": per_page},
-        )
-
-        if response.status_code != 200:
-            return jsonify({"error": "Failed to fetch activities"}), 500
-
-        activities = response.json()
-        if not activities:
-            break  # Stop fetching if no more activities are returned
-
-        all_activities.extend(activities)
-        page += 1  # Move to the next page
+    # Request only 10 activities (Strava allows per_page = 10)
+    response = requests.get(
+        f"{STRAVA_API_URL}/athlete/activities",
+        headers=headers,
+        params={"page": 1, "per_page": 10},  # Limit results to 10 activities
+    )
+    
+    if response.status_code != 200:
+        return jsonify({"error": "Failed to fetch activities"}), 500
+    
+    all_activities = response.json() # Should contain only 10 activities
 
     # Store activities in the database
     conn = sqlite3.connect("strava.db")
     cursor = conn.cursor()
-    
-    #drop table if it exists
+
+    # Drop table if it exists to refresh data
+    print("dropping table")
     cursor.execute("DROP TABLE IF EXISTS activities")
 
-    # Create or update the database schema
+    # Create the database schema
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS activities (
             id INTEGER PRIMARY KEY,
@@ -86,13 +119,17 @@ def get_activities():
             type TEXT,
             sport_type TEXT,
             location_country TEXT,
-            kudos_count INTEGER
+            kudos_count INTEGER,
+            polyline TEXT
         )"""
     )
 
     for act in all_activities:
+        # Extract polyline safely
+        polyline = act.get("map", {}).get("polyline") or act.get("map", {}).get("summary_polyline")
+
         cursor.execute(
-            "INSERT OR IGNORE INTO activities VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO activities VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (
                 act["id"],
                 act["name"],
@@ -112,14 +149,17 @@ def get_activities():
                 act["start_date"],
                 act["type"],
                 act["sport_type"],
-                act["location_country"],
-                act["kudos_count"],                
+                act.get("location_country", None),
+                act.get("kudos_count", 0),
+                polyline,  # Store the extracted polyline
             ),
         )
 
+    print("act inserted")
+
     conn.commit()
     conn.close()
-
+    
     return jsonify(all_activities)
 
 @app.route("/activities/local", methods=["GET"])
@@ -133,13 +173,10 @@ def get_local_activities():
 
     return jsonify(activities)
 
-
-
 @app.route("/")
 def serve_frontend():
     """Serves the main HTML page."""
     return send_from_directory(app.static_folder, "index.html")
-
 
 @app.route("/<path:path>")
 def serve_static(path):
@@ -148,21 +185,22 @@ def serve_static(path):
 
 @app.route("/activity_polyline/<int:activity_id>", methods=["GET"])
 def get_activity_polyline(activity_id):
-    """Fetch the polyline for a specific activity."""
-    access_token = get_access_token()
-    if not access_token:
-        return jsonify({"error": "Could not get access token"}), 401
+    """Retrieve polyline from SQLite instead of making an extra API call."""
+    conn = sqlite3.connect("strava.db")
+    cursor = conn.cursor()
 
-    headers = {"Authorization": f"Bearer {access_token}"}
-    response = requests.get(f"{STRAVA_API_URL}/activities/{activity_id}", headers=headers)
+    cursor.execute("SELECT polyline FROM activities WHERE id = ?", (activity_id,))
+    result = cursor.fetchone()
+    
+    conn.close()
 
-    if response.status_code != 200:
-        return jsonify({"error": "Failed to fetch activity details"}), 500
+    if result and result[0]:  
+        return jsonify({"polyline": result[0]})
+    else:
+        return jsonify({"error": "Polyline not found"}), 404
 
-    activity_data = response.json()
-    polyline = activity_data.get("map", {}).get("polyline", "")
-
-    return jsonify({"polyline": polyline})
 
 if __name__ == "__main__":
+    with app.app_context():
+        get_activities()
     app.run(debug=True)
