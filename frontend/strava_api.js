@@ -5,7 +5,6 @@ fetch("http://127.0.0.1:5000/api/thunderforest")
     .then(response => response.json())
     .then(config => {
         THUNDERFOREST_API_KEY = config.THUNDERFOREST_API_KEY;
-        console.log("Loaded Thunderforest API Key:", THUNDERFOREST_API_KEY);
         loadLocalActivities(); // Load activities after getting API key
     })
     .catch(error => console.error("Error fetching API key:", error));
@@ -15,7 +14,6 @@ document.getElementById("fetch-new-activities").addEventListener("click", functi
     fetch("http://127.0.0.1:5000/activities")
         .then(response => response.json())
         .then(data => {
-            console.log("New activities fetched:", data);
             loadLocalActivities(); // Refresh the frontend after fetching
         })
         .catch(error => console.error("Error fetching new activities:", error));
