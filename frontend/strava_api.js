@@ -1,25 +1,45 @@
-document.addEventListener("DOMContentLoaded", function () {
+let THUNDERFOREST_API_KEY = "";
+
+// Fetch API key from Flask before rendering the map
+fetch("http://127.0.0.1:5000/api/thunderforest")
+    .then(response => response.json())
+    .then(config => {
+        THUNDERFOREST_API_KEY = config.THUNDERFOREST_API_KEY;
+        console.log("Loaded Thunderforest API Key:", THUNDERFOREST_API_KEY);
+        loadLocalActivities(); // Load activities after getting API key
+    })
+    .catch(error => console.error("Error fetching API key:", error));
+
+// Function to fetch new activities when button is clicked
+document.getElementById("fetch-new-activities").addEventListener("click", function () {
+    fetch("http://127.0.0.1:5000/activities")
+        .then(response => response.json())
+        .then(data => {
+            console.log("New activities fetched:", data);
+            loadLocalActivities(); // Refresh the frontend after fetching
+        })
+        .catch(error => console.error("Error fetching new activities:", error));
+});
+
+// Function to load activities from /activities/local
+function loadLocalActivities() {
     fetch("http://127.0.0.1:5000/activities/local")
         .then(response => response.json())
         .then(data => {
-            // Ensure the array is sorted in descending order (newest first)
-            data.sort((a, b) => new Date(b[5]) - new Date(a[5]));
-
             const activitiesDiv = document.getElementById("activities");
-            activitiesDiv.innerHTML = ""; // Clear previous content
+            activitiesDiv.innerHTML = ""; // Clear previous activities
 
             data.forEach(activity => {
                 const activityElement = document.createElement("div");
                 activityElement.classList.add("activity");
 
-                // Convert moving time to hh:mm format
                 const formattedTime = formatTime(activity[3]);
 
                 activityElement.innerHTML = `
                     <h2>${activity[1]}</h2>
                     <p><strong>Distance:</strong> ${(activity[2] / 1000).toFixed(2)} km</p>
                     <p><strong>Time:</strong> ${formattedTime}</p>
-                    <p><strong>Elevation Gain:</strong> ${activity[4]} m</p>
+                    <p><strong>Elevation Gain:</strong> ${activity[14]} m</p>
                     <div id="map-${activity[0]}" class="map-container"></div>
                 `;
 
@@ -36,12 +56,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     .catch(error => console.error("Error fetching polyline:", error));
             });
         })
-        .catch(error => console.error("Error fetching activities:", error));
-});
+        .catch(error => console.error("Error loading local activities:", error));
+}
 
-
-// Function to render Leaflet map with activity polyline
+// Function to render Leaflet map with elevation (topographic) lines
 function renderMap(mapId, polylineData) {
+    if (!THUNDERFOREST_API_KEY) {
+        console.error("No API key loaded! Map cannot be displayed.");
+        return;
+    }
+
     const decodedPolyline = decodePolyline(polylineData);
 
     if (decodedPolyline.length === 0) {
@@ -49,19 +73,21 @@ function renderMap(mapId, polylineData) {
         return;
     }
 
-    // Create a map and fit bounds to polyline
+    // Create a Leaflet map
     const map = L.map(mapId);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap contributors"
+    // Use Thunderforest Outdoors for elevation contour lines
+    L.tileLayer(`https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=${THUNDERFOREST_API_KEY}`, {
+        attribution: "&copy; <a href='https://www.thunderforest.com/'>Thunderforest</a> contributors",
+        maxZoom: 22,
     }).addTo(map);
 
+    // Add polyline to the map
     const polyline = L.polyline(decodedPolyline, { color: "blue", weight: 4 }).addTo(map);
 
     // Adjust zoom to fit the polyline bounds dynamically
     map.fitBounds(polyline.getBounds(), { padding: [20, 20] });
 }
-
 
 // Function to decode Google Maps encoded polylines
 function decodePolyline(encoded) {

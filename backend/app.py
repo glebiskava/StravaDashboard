@@ -16,8 +16,17 @@ STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
 STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
 STRAVA_REFRESH_TOKEN = os.getenv("STRAVA_REFRESH_TOKEN")
 STRAVA_API_URL = "https://www.strava.com/api/v3"
+THUNDERFOREST_API_KEY = os.getenv("THUNDERFOREST_API_KEY")
 
 TOKEN_FILE = "token.json"
+
+@app.route("/api/thunderforest", methods=["GET"])
+def get_config():
+    """Returns API key ONLY if request is from localhost"""
+    if request.remote_addr not in ["127.0.0.1", "localhost"]:
+        return jsonify({"error": "Unauthorized"}), 403  # Block unauthorized access
+    
+    return jsonify({"THUNDERFOREST_API_KEY": THUNDERFOREST_API_KEY})
 
 def load_token():
     """Load access token and expiry time from a file."""
@@ -201,6 +210,4 @@ def get_activity_polyline(activity_id):
 
 
 if __name__ == "__main__":
-    with app.app_context():
-        get_activities()
     app.run(debug=True)
