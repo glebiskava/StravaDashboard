@@ -1,0 +1,12 @@
+<h1>My Activities</h1>
+<button (click)="fetchNewActivities()">Fetch New Activities</button>
+
+<div class="activity" *ngFor="let activity of activities">
+  <h2>{{ activity.name }}</h2>
+  <p><strong>Distance:</strong> {{ (activity.distance / 1000).toFixed(2) }} km</p>
+  <p><strong>Time:</strong> {{ formatTime(activity.moving_time) }}</p>
+  <p><strong>Elevation Gain:</strong> {{ activity.elevation_gain }} m</p>
+
+  <!-- Map container -->
+  <div id="map-{{ activity.id }}" class="map-container"></div>
+</div>

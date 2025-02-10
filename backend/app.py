@@ -7,10 +7,12 @@ import os
 import time
 import json
 
+from summary import summary_bp
+
 load_dotenv()
 
-app = Flask(__name__, static_folder="../frontend")
-CORS(app)
+app = Flask(__name__)
+CORS(app, origins=["http://localhost:4200"])  # Allow Angular frontend
 
 STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
 STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
@@ -208,6 +210,8 @@ def get_activity_polyline(activity_id):
     else:
         return jsonify({"error": "Polyline not found"}), 404
 
+# Register the summary blueprint
+app.register_blueprint(summary_bp)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
