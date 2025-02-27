@@ -12,7 +12,7 @@ from summary import summary_bp
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:4200"])  # Allow Angular frontend
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
 STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
@@ -28,8 +28,7 @@ def get_config():
     if request.remote_addr not in ["127.0.0.1", "localhost"]:
         return jsonify({"error": "Unauthorized"}), 403  # Block unauthorized access
     
-    return jsonify({"THUNDERFOREST_API_KEY": THUNDERFOREST_API_KEY})
-
+    return jsonify({"apiKey": THUNDERFOREST_API_KEY})
 def load_token():
     """Load access token and expiry time from a file."""
     if os.path.exists(TOKEN_FILE):

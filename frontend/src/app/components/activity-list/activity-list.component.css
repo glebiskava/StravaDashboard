@@ -6,3 +6,8 @@
   border-radius: 10px;
   overflow: hidden;
 }
+
+.leaflet-container {
+  width: 100% !important;
+  height: 400px !important;
+}

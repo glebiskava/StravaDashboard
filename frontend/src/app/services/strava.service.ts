@@ -11,10 +11,9 @@ export class StravaService {
   apiKeyLoaded = new BehaviorSubject<boolean>(false);
 
   constructor(private http: HttpClient) {
-    this.loadThunderforestApiKey(); // ✅ Ensure API key is loaded when service is created
+    this.loadThunderforestApiKey(); 
   }
 
-  // Load API key on service initialization
   public loadThunderforestApiKey(): void {
     this.http
       .get<{ apiKey: string }>(`${this.apiUrl}/api/thunderforest`)
@@ -23,9 +22,9 @@ export class StravaService {
           if (response && response.apiKey) {
             this.thunderforestApiKey = response.apiKey;
             this.apiKeyLoaded.next(true);
-            console.log(`✅ Thunderforest API key loaded: ${this.thunderforestApiKey}`);
+            console.log(`Thunderforest API key loaded`);
           } else {
-            console.error('⚠️ Received empty Thunderforest API key response:', response);
+            console.error('Received empty Thunderforest API key response');
             this.apiKeyLoaded.next(false);
           }
         },
@@ -43,22 +42,18 @@ export class StravaService {
     return this.apiKeyLoaded.asObservable();
   }
 
-  // Fetch the latest activities
   getActivities(): Observable<any> {
     return this.http.get(`${this.apiUrl}/activities`);
   }
 
-  // Fetch local activities from SQLite
   getLocalActivities(): Observable<any> {
     return this.http.get(`${this.apiUrl}/activities/local`);
   }
 
-  // Fetch polyline for a specific activity
   getPolyline(activityId: number): Observable<any> {
     return this.http.get(`${this.apiUrl}/activity_polyline/${activityId}`);
   }
 
-  // Fetch the weekly training summary
   getWeeklySummary(): Observable<any> {
     return this.http.get(`${this.apiUrl}/summary/weekly`);
   }
