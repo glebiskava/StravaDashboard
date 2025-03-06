@@ -1,60 +1,26 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StravaService {
-  private apiUrl = 'http://127.0.0.1:5000';
-  public thunderforestApiKey: string = '';
-  apiKeyLoaded = new BehaviorSubject<boolean>(false);
+  private apiUrl = 'http://localhost:5000';
 
-  constructor(private http: HttpClient) {
-    this.loadThunderforestApiKey(); 
+  constructor(private http: HttpClient) {}
+
+  getActivities(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/activities/local`);
   }
 
-  public loadThunderforestApiKey(): void {
-    this.http
-      .get<{ apiKey: string }>(`${this.apiUrl}/api/thunderforest`)
-      .subscribe({
-        next: (response) => {
-          if (response && response.apiKey) {
-            this.thunderforestApiKey = response.apiKey;
-            this.apiKeyLoaded.next(true);
-            console.log(`Thunderforest API key loaded`);
-          } else {
-            console.error('Received empty Thunderforest API key response');
-            this.apiKeyLoaded.next(false);
-          }
-        },
-        error: (error) => {
-          console.error('Failed to load Thunderforest API key:', error);
-          this.apiKeyLoaded.next(false);
-        },
-        complete: () => {
-          console.log('API key request completed.');
-        },
-      });
+  getActivityPolyline(activityId: number): Observable<{ polyline: string }> {
+    return this.http.get<{ polyline: string }>(`${this.apiUrl}/activity_polyline/${activityId}`);
   }
 
-  waitForApiKey(): Observable<boolean> {
-    return this.apiKeyLoaded.asObservable();
-  }
-
-  getActivities(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/activities`);
-  }
-
-  getLocalActivities(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/activities/local`);
-  }
-
-  getPolyline(activityId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/activity_polyline/${activityId}`);
-  }
-
-  getWeeklySummary(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/summary/weekly`);
+  getWeeklySummary(): Observable<{ total_distance: number, total_elevation: number, total_time: number }> {
+    return this.http.get<{ total_distance: number, total_elevation: number, total_time: number }>(
+      `${this.apiUrl}/summary/weekly`
+    );
   }
 }

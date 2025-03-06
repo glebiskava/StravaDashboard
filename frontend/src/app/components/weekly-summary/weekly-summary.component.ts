@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { StravaService } from '../../services/strava.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-weekly-summary',
@@ -10,17 +10,27 @@ import { StravaService } from '../../services/strava.service';
   styleUrls: ['./weekly-summary.component.css']
 })
 export class WeeklySummaryComponent implements OnInit {
-  summary: any = { total_distance: 0, total_elevation: 0, total_time: 0 };
+  totalDistance: number = 0;
+  totalElevation: number = 0;
+  totalTime: number = 0;
 
   constructor(private stravaService: StravaService) {}
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.loadSummary();
   }
 
   loadSummary(): void {
-    this.stravaService.getWeeklySummary().subscribe((data) => {
-      this.summary = data;
+    this.stravaService.getWeeklySummary().subscribe({
+      next: (data) => {
+        console.log("Weekly summary response:", data);
+        this.totalDistance = data.total_distance;
+        this.totalElevation = data.total_elevation;
+        this.totalTime = data.total_time;
+      },
+      error: (err) => {
+        console.error('Error fetching weekly summary:', err);
+      }
     });
   }
 
@@ -29,9 +39,8 @@ export class WeeklySummaryComponent implements OnInit {
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
 
-    if (hours > 0) {
-        return `${hours}h${remainingMinutes.toString().padStart(2, "0")}min`;
-    }
-    return `${minutes}min`;
+    return hours > 0
+      ? `${hours}h ${remainingMinutes.toString().padStart(2, "0")}min`
+      : `${minutes}min`;
   }
 }

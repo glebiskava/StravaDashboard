@@ -1,8 +1,9 @@
-import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChildren, QueryList } from '@angular/core';
+import { ActivityService } from '../../services/activity.service';
+import { GoogleMapsLoaderService } from '../../services/google-maps-loader.service';
 import { CommonModule } from '@angular/common';
-import { StravaService } from '../../services/strava.service';
-import * as L from 'leaflet';
-import { Subscription, combineLatest, of, switchMap } from 'rxjs';
+
+declare var google: any;
 
 @Component({
   selector: 'app-activity-list',
@@ -11,171 +12,127 @@ import { Subscription, combineLatest, of, switchMap } from 'rxjs';
   templateUrl: './activity-list.component.html',
   styleUrls: ['./activity-list.component.css']
 })
-export class ActivityListComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ActivityListComponent implements OnInit {
   activities: any[] = [];
-  maps: Record<number, L.Map> = {};
-  private subscriptions: Subscription = new Subscription();
+  selectedPolylines: { [id: number]: string } = {};
 
-  constructor(private stravaService: StravaService) { }
+  @ViewChildren('mapContainer') mapContainers!: QueryList<ElementRef>;
 
-  ngOnInit(): void {
-    this.loadActivities();
+  constructor(private activityService: ActivityService, private googleMapsLoader: GoogleMapsLoaderService) {}
+
+  ngOnInit() {
+    this.fetchLocalActivities();
   }
 
-  ngAfterViewInit(): void {
-    const apiKeySub = this.stravaService.waitForApiKey()
-      .pipe(
-        switchMap(isLoaded => {
-          if (isLoaded && this.activities.length > 0) {
-            return of(true);
-          }
-          return of(false);
-        })
-      )
-      .subscribe(canRenderMaps => {
-        if (canRenderMaps) {
-          this.renderAllMaps();
-        } else {
-          console.warn('API key not loaded yet, will render maps when available');
-        }
-      });
+  fetchLocalActivities() {
+    this.activityService.getLocalActivities().subscribe({
+      next: (data) => {
+        console.log("Activities response:", data);
+        this.activities = data;
 
-    this.subscriptions.add(apiKeySub);
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
-
-    Object.values(this.maps).forEach(map => {
-      if (map) {
-        map.remove();
+        // ✅ Wait for Google Maps to load before rendering maps
+        this.googleMapsLoader.load().then(() => {
+          this.activities.forEach(activity => {
+            this.getActivityPolyline(activity.id);
+          });
+        });
+      },
+      error: (err) => {
+        console.error('Error fetching activities:', err);
       }
     });
   }
 
-  loadActivities(): void {
-    const activitySub = this.stravaService.getLocalActivities().subscribe({
+  fetchLatestActivities() {
+    this.activityService.getNewestActivities().subscribe({
       next: (data) => {
-        this.activities = data.map((activity: any[]) => ({
-          id: activity[0],
-          name: activity[1],
-          distance: activity[2],
-          moving_time: activity[3],
-          elevation_gain: activity[14],
-          polyline: activity[20],
-          polylineDecoded: this.decodePolyline(activity[20] || '')
-        }));
+        console.log("Activities response:", data);
+        this.activities = data;
 
-        if (this.stravaService.thunderforestApiKey && this.activities.length > 0) {
-          setTimeout(() => this.renderAllMaps(), 100);
+        // ✅ Wait for Google Maps to load before rendering maps
+        this.googleMapsLoader.load().then(() => {
+          this.activities.forEach(activity => {
+            this.getActivityPolyline(activity.id);
+          });
+        });
+      },
+      error: (err) => {
+        console.error('Error fetching activities:', err);
+      }
+    });
+  }
+
+  getActivityPolyline(activityId: number) {
+    this.activityService.getActivityPolyline(activityId).subscribe({
+      next: (data) => {
+        console.log(`Polyline received for activity ${activityId}:`, data);
+        if (data.polyline) {
+          this.selectedPolylines[activityId] = data.polyline;
+          this.renderMap(activityId);
+        } else {
+          console.error(`No polyline data available for activity ${activityId}`);
         }
       },
-      error: (err) => console.error('Error loading activities:', err)
-    });
-
-    this.subscriptions.add(activitySub);
-  }
-
-  renderAllMaps(): void {
-    this.activities.forEach((activity) => {
-      if (activity.polylineDecoded && activity.polylineDecoded.length > 0) {
-        this.renderMap(activity.id, activity.polylineDecoded);
+      error: (err) => {
+        console.error(`Error fetching polyline for activity ${activityId}:`, err);
       }
     });
   }
 
-  renderMap(activityId: number, polylineDecoded: any[]): void {
-    const mapId = `map-${activityId}`;
-
-    if (!polylineDecoded || polylineDecoded.length === 0) {
-      console.warn(`Skipping map render for activity ${activityId} due to empty polyline.`);
-      return;
-    }
-
-    if (!this.stravaService.thunderforestApiKey) {
-      console.error("Cannot render map: Thunderforest API key not loaded.");
-      return;
-    }
-
-    // Ensure the container exists before initializing Leaflet
-    const checkContainer = setInterval(() => {
-      const mapContainer = document.getElementById(mapId);
-      if (mapContainer) {
-        clearInterval(checkContainer);
-        this.initializeMap(activityId, mapId, polylineDecoded);
-      }
-    }, 300);
-  }
-
-
-  initializeMap(activityId: number, mapId: string, polylineDecoded: any[]): void {
-    if (!this.stravaService.thunderforestApiKey) {
-      console.error("Cannot render map: Thunderforest API key not loaded.");
+  async renderMap(activityId: number) {
+    const polyline = this.selectedPolylines[activityId];
+  
+    if (!polyline) {
+      console.error(`Invalid polyline data for activity ${activityId}`);
       return;
     }
   
-    if (this.maps[activityId]) {
-      this.maps[activityId].remove();
+    // ✅ Ensure Google Maps API is loaded before trying to use it
+    if (!window.google || !window.google.maps) {
+      console.error("Google Maps API is not loaded yet");
+      return;
     }
   
-    try {
-      const map = L.map(mapId).setView(polylineDecoded[0], 13);
-      this.maps[activityId] = map;
+    const decodedPath = window.google.maps.geometry.encoding.decodePath(polyline);
   
-      console.log(`Loading tile layer: https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=${this.stravaService.thunderforestApiKey}`);
+    // ✅ Find the correct map container
+    const mapElement = this.mapContainers.find(
+      (el) => el.nativeElement.id === `map-${activityId}`
+    );
   
-      L.tileLayer(
-        `https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=${this.stravaService.thunderforestApiKey}`,
-        {
-          attribution: '&copy; <a href="https://www.thunderforest.com/">Thunderforest</a> contributors',
-          crossOrigin: true // Ensures CORS compatibility
-        }
-      ).addTo(map);
-  
-      if (polylineDecoded.length > 1) {
-        const polyline = L.polyline(polylineDecoded, { color: 'blue', weight: 4 }).addTo(map);
-        map.fitBounds(polyline.getBounds(), { padding: [20, 20] });
-      }
-  
-      setTimeout(() => {
-        map.invalidateSize();
-      }, 500);
-    } catch (err) {
-      console.error(`Error rendering map for activity ${activityId}:`, err);
+    if (!mapElement) {
+      console.error(`Map container not found for activity ${activityId}`);
+      return;
     }
-  }
   
+    const map = new window.google.maps.Map(mapElement.nativeElement, {
+      mapTypeId: window.google.maps.MapTypeId.ROADMAP
+    });
+  
+    const bounds = new window.google.maps.LatLngBounds();
+    decodedPath.forEach((point: any) => bounds.extend(point));
+  
+    map.fitBounds(bounds);
+  
+    new window.google.maps.Polyline({
+      path: decodedPath,
+      geodesic: true,
+      strokeColor: "#FF0000",
+      strokeOpacity: 1.0,
+      strokeWeight: 2,
+      map: map,
+    });
+  
+    console.log(`Map rendered for activity ${activityId}`);
+  }  
 
-  decodePolyline(encoded: string): L.LatLngLiteral[] {
-    if (!encoded || encoded.length === 0) {
-      console.warn("Empty or invalid polyline received.");
-      return [];
-    }
+  formatTime(seconds: number): string {
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
 
-    let points: L.LatLngLiteral[] = [];
-    let index = 0, lat = 0, lng = 0;
-
-    while (index < encoded.length) {
-      let b, shift = 0, result = 0;
-      do {
-        b = encoded.charCodeAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      lat += (result & 1 ? ~(result >> 1) : result >> 1);
-
-      shift = 0;
-      result = 0;
-      do {
-        b = encoded.charCodeAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      lng += (result & 1 ? ~(result >> 1) : result >> 1);
-
-      points.push({ lat: lat / 1e5, lng: lng / 1e5 });
-    }
-
-    return points;
+    return hours > 0
+      ? `${hours}h ${remainingMinutes.toString().padStart(2, "0")}min`
+      : `${minutes}min`;
   }
 }

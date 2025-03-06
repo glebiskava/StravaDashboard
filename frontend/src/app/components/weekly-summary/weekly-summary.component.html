@@ -1,4 +1,8 @@
-<h2>Last Week's Training Summary</h2>
-<p><strong>Distance:</strong> {{ summary.total_distance.toFixed(1) }} km</p>
-<p><strong>Elevation Gain:</strong> {{ summary.total_elevation.toFixed(0) }} m</p>
-<p><strong>Total Time:</strong> {{ formatTime(summary.total_time) }}</p>
+<div class="summary-container">
+    <h3>Weekly Summary</h3>
+    <p><strong>Total Distance:</strong> {{ totalDistance | number: '1.1-2' }} km</p>
+    <p><strong>Total Elevation Gain:</strong> {{ totalElevation }} m</p>
+    <p><strong>Total Time:</strong> {{ formatTime(totalTime) }}</p>
+    <button (click)="loadSummary()">Refresh Summary</button>
+  </div>
+  

@@ -12,23 +12,25 @@ from summary import summary_bp
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
 
 STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
 STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
 STRAVA_REFRESH_TOKEN = os.getenv("STRAVA_REFRESH_TOKEN")
 STRAVA_API_URL = "https://www.strava.com/api/v3"
-THUNDERFOREST_API_KEY = os.getenv("THUNDERFOREST_API_KEY")
+GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 TOKEN_FILE = "token.json"
 
-@app.route("/api/thunderforest", methods=["GET"])
-def get_config():
+CORS(app, resources={r"/api/*": {"origins": ["*"]}})
+
+@app.route("/api/google-maps-key", methods=["GET"])
+def get_google_maps_key():
     """Returns API key ONLY if request is from localhost"""
     if request.remote_addr not in ["127.0.0.1", "localhost"]:
         return jsonify({"error": "Unauthorized"}), 403  # Block unauthorized access
     
-    return jsonify({"apiKey": THUNDERFOREST_API_KEY})
+    return jsonify({"apiKey": GOOGLE_MAPS_API_KEY})
+
 def load_token():
     """Load access token and expiry time from a file."""
     if os.path.exists(TOKEN_FILE):
@@ -97,14 +99,14 @@ def get_activities():
     if response.status_code != 200:
         return jsonify({"error": "Failed to fetch activities"}), 500
     
-    all_activities = response.json() # Should contain only 10 activities
+    all_activities = response.json()  # Should contain only 10 activities
 
     # Store activities in the database
     conn = sqlite3.connect("strava.db")
     cursor = conn.cursor()
 
     # Drop table if it exists to refresh data
-    print("dropping table")
+    print("Dropping table")
     cursor.execute("DROP TABLE IF EXISTS activities")
 
     # Create the database schema
@@ -139,7 +141,7 @@ def get_activities():
         polyline = act.get("map", {}).get("polyline") or act.get("map", {}).get("summary_polyline")
 
         cursor.execute(
-            "INSERT INTO activities VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            """INSERT INTO activities VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 act["id"],
                 act["name"],
@@ -165,7 +167,7 @@ def get_activities():
             ),
         )
 
-    print("act inserted")
+    print("Activities inserted successfully")
 
     conn.commit()
     conn.close()
@@ -177,21 +179,25 @@ def get_local_activities():
     """Retrieves stored activities from SQLite database, ordered by start date (newest first)."""
     conn = sqlite3.connect("strava.db")
     cursor = conn.cursor()
+
     cursor.execute("SELECT * FROM activities ORDER BY start_date DESC")
     activities = cursor.fetchall()
     conn.close()
 
-    return jsonify(activities)
+    if not activities:
+        return jsonify([]), 200  # Ensure JSON format when no data
 
-@app.route("/")
-def serve_frontend():
-    """Serves the main HTML page."""
-    return send_from_directory(app.static_folder, "index.html")
+    activity_keys = [
+        "id", "name", "distance", "moving_time", "average_speed", "max_speed",
+        "average_cadence", "average_temp", "has_heartrate", "average_heartrate",
+        "max_heartrate", "elev_high", "elev_low", "calories",
+        "total_elevation_gain", "start_date", "type", "sport_type",
+        "location_country", "kudos_count", "polyline"
+    ]
 
-@app.route("/<path:path>")
-def serve_static(path):
-    """Serves static frontend files (JS, CSS)."""
-    return send_from_directory(app.static_folder, path)
+    activities_json = [dict(zip(activity_keys, row)) for row in activities]
+
+    return jsonify(activities_json), 200
 
 @app.route("/activity_polyline/<int:activity_id>", methods=["GET"])
 def get_activity_polyline(activity_id):

@@ -21,11 +21,11 @@ def get_weekly_summary():
     result = cursor.fetchone()
     conn.close()
 
-    # Format response
-    summary = {
+    if result is None:
+        return jsonify({"total_distance": 0, "total_elevation": 0, "total_time": 0}), 200
+
+    return jsonify({
         "total_distance": result[0] / 1000 if result[0] else 0,  # Convert to km
         "total_elevation": result[1] if result[1] else 0,
         "total_time": result[2] if result[2] else 0
-    }
-
-    return jsonify(summary)
+    }), 200
