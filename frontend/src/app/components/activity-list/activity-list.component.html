@@ -1,7 +1,7 @@
 <h2>Activities</h2>
 <button (click)="fetchLatestActivities()">Get Latest Activities</button>
 
-<mat-paginator>
+<mat-paginator
   [length]="activities.length"
   [pageSize]="activitiesPerPage"
   [pageSizeOptions]="[5, 10, 20]"
