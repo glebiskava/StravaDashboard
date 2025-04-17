@@ -37,3 +37,33 @@ def get_weekly_summary():
         "total_elevation": result[1] if result[1] else 0,
         "total_time": result[2] if result[2] else 0
     }), 200
+    
+@summary_bp.route("/summary/monthly-type", methods=["GET"])
+def get_monthly_type_summary():
+    """Returns top 3 activity types and their total distance (in km) for the last month."""
+    conn = sqlite3.connect("strava.db")
+    cursor = conn.cursor()
+
+    # Calculate first and last day of last month
+    now = datetime.utcnow()
+    first_day_this_month = datetime(now.year, now.month, 1)
+    last_month = first_day_this_month.replace(day=1) - timedelta(days=1)
+    first_day_last_month = datetime(last_month.year, last_month.month, 1)
+    last_day_last_month = datetime(last_month.year, last_month.month, last_month.day, 23, 59, 59)
+
+    cursor.execute("""
+        SELECT sport_type, SUM(distance) / 1000.0 as km
+        FROM activities
+        WHERE start_date BETWEEN ? AND ?
+        GROUP BY sport_type
+        ORDER BY km DESC
+        LIMIT 3
+    """, (first_day_last_month.isoformat(), last_day_last_month.isoformat()))
+
+    result = cursor.fetchall()
+    conn.close()
+
+    return jsonify([
+        {"sport_type": row[0], "distance_km": round(row[1], 2)}
+        for row in result
+    ])

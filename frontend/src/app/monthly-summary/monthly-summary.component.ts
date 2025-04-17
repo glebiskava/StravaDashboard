@@ -1,0 +1,27 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { HttpClient } from '@angular/common/http';
+
+@Component({
+  selector: 'app-monthly-summary',
+  standalone: true,
+  imports: [CommonModule, NgxChartsModule],
+  templateUrl: './monthly-summary.component.html',
+  styleUrl: './monthly-summary.component.css'
+})
+
+export class MonthlySummaryComponent implements OnInit {
+  summaryData: any[] = [];
+
+  constructor(private http: HttpClient) {}
+
+  ngOnInit() {
+    this.http.get<any[]>('http://localhost:5000/summary/monthly-type').subscribe(data => {
+      this.summaryData = data.map(item => ({
+        name: item.sport_type,
+        value: item.distance_km
+      }));
+    });
+  }
+}

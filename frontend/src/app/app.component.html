@@ -1,4 +1,31 @@
 <h1>My Strava Dashboard</h1>
 
-<app-weekly-summary></app-weekly-summary>
-<app-activity-list></app-activity-list>
+<div class="dashboard-container">
+    <!-- <section class="dashboard-header">
+    </section> -->
+
+    <!-- <nav class="dashboard-nav">
+        <ul>
+            <li><a routerLink="/home">Home</a></li>
+            <li><a routerLink="/activities">Activities</a></li>
+            <li><a routerLink="/settings">Settings</a></li>
+        </ul>
+    </nav> -->
+    <section class="dashboard-content">
+        <div class="summary-section">
+            <app-weekly-summary></app-weekly-summary>
+        </div>
+
+        <div class="monthly-summary-section">
+            <app-monthly-summary></app-monthly-summary>
+        </div>
+
+        <div class="activity-section">
+            <app-activity-list></app-activity-list>
+        </div>
+    </section>
+
+    <footer class="dashboard-footer">
+        <p>&copy; Léopold's Strava Dashboard. All rights reserved.</p>
+    </footer>
+</div>
