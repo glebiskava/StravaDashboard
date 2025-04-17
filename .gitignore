@@ -5,4 +5,3 @@
 *.json
 /.angular
 *.editorconfig
-/backend/__pycache__
