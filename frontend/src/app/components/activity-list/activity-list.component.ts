@@ -87,7 +87,7 @@ export class ActivityListComponent implements OnInit {
       return;
     }
   
-    // ✅ Ensure Google Maps API is loaded before trying to use it
+    // Ensure Google Maps API is loaded before trying to use it
     if (!window.google || !window.google.maps) {
       console.error("Google Maps API is not loaded yet");
       return;
@@ -95,7 +95,7 @@ export class ActivityListComponent implements OnInit {
   
     const decodedPath = window.google.maps.geometry.encoding.decodePath(polyline);
   
-    // ✅ Find the correct map container
+    // Find the correct map container
     const mapElement = this.mapContainers.find(
       (el) => el.nativeElement.id === `map-${activityId}`
     );
@@ -106,8 +106,8 @@ export class ActivityListComponent implements OnInit {
     }
   
     const map = new window.google.maps.Map(mapElement.nativeElement, {
-      mapTypeId: window.google.maps.MapTypeId.ROADMAP
-    });
+      mapTypeId: window.google.maps.MapTypeId.TERRAIN
+    });    
   
     const bounds = new window.google.maps.LatLngBounds();
     decodedPath.forEach((point: any) => bounds.extend(point));
