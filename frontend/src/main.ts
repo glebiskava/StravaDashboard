@@ -3,9 +3,16 @@ import { AppComponent } from './app/app.component';
 import { provideHttpClient } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { importProvidersFrom } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { AppRoutingModule, routes } from './app/app-routing.module';
 
 bootstrapApplication(AppComponent, {
-  providers: [provideHttpClient(), provideAnimations(), importProvidersFrom()],
+  providers: [
+    provideHttpClient(),
+    provideAnimations(),
+    provideRouter(routes),
+    importProvidersFrom(AppRoutingModule)
+  ],
 }).catch(err => console.error(err));
 
 async function loadGoogleMapsApi(): Promise<void> {

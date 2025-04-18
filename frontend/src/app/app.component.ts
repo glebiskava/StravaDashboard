@@ -11,9 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
-import { ActivityListComponent } from './components/activity-list/activity-list.component';
-import { WeeklySummaryComponent } from './components/weekly-summary/weekly-summary.component';
-import { MonthlySummaryComponent } from './monthly-summary/monthly-summary.component';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -22,9 +20,6 @@ import { MonthlySummaryComponent } from './monthly-summary/monthly-summary.compo
   styleUrls: ['./app.component.css'],
   imports: [
     CommonModule,
-    ActivityListComponent,
-    WeeklySummaryComponent,
-    MonthlySummaryComponent,
     MatSidenavModule,
     MatToolbarModule,
     MatCardModule,
@@ -34,7 +29,8 @@ import { MonthlySummaryComponent } from './monthly-summary/monthly-summary.compo
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule
+    MatSelectModule,
+    RouterOutlet,
   ]
 })
 export class AppComponent {
