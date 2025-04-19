@@ -64,6 +64,8 @@ export class ActivityListComponent implements OnInit {
         console.error('Error fetching activities:', err);
       }
     });
+
+    window.location.reload();
   }
 
   onPageChange(event: PageEvent) {
