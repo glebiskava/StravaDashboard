@@ -95,7 +95,7 @@ def get_activities():
     response = requests.get(
         f"{STRAVA_API_URL}/athlete/activities",
         headers=headers,
-        params={"page": 1, "per_page": 30},  # Limit results to 10 activities
+        params={"page": 1, "per_page": 100},  # Limit results to 10 activities
     )
     
     if response.status_code != 200:

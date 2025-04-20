@@ -1,0 +1,33 @@
+mat-card-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+mat-card {
+    margin: 16px;
+    padding: 16px;
+}
+
+.vo2max-card {
+    text-align: center;
+}
+
+.vo2max-value {
+    display: inline-block;
+    margin-top: 20px;
+    font-size: 2.5em;
+    /* Adjust the font size as needed */
+    font-weight: bold;
+}
+
+.vo2max-value span {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.vo2max-value p {
+    font-size: .5em;
+    /* Adjust the font size as needed */
+    font-weight: normal;
+}

@@ -1,17 +1,10 @@
-.summary-card {
-    margin: 16px;
-    padding: 16px;
-  }
-  
-  .summary-container {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  mat-card-title {
-    font-size: 1.4rem;
-    font-weight: 600;
-    margin-bottom: 12px;
-  }
-  
+mat-card-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+mat-card {
+  margin: 16px;
+  padding: 16px;
+}

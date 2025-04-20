@@ -1,8 +1,7 @@
-/* In home.component.css or global styles */
 .home-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-    gap: 16px;
-    padding: 24px;
-  }
-  
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+  gap: 16px;
+  padding: 24px;
+  align-items: stretch;
+}

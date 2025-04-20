@@ -1,0 +1,14 @@
+<mat-card>
+    <mat-card-title>Heart Rate Zones</mat-card-title>
+    <mat-card-content>
+      <ngx-charts-pie-chart
+        [view]="view"
+        [results]="zoneData"
+        [gradient]="false"
+        [labels]="showLabels"
+        [legend]="!showLegend"
+        [doughnut]="true">
+      </ngx-charts-pie-chart>
+    </mat-card-content>
+  </mat-card>
+  

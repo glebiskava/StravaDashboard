@@ -1,30 +1,28 @@
 <mat-sidenav-container class="dashboard-container">
-
-  <!-- Toggleable sidenav -->
+  <!-- Sidenav with links -->
   <mat-sidenav #sidenav mode="side" [(opened)]="isSidenavOpen">
     <mat-nav-list>
-      <a mat-list-item href="" routerLinkActive="active-link">Home</a>
+      <a mat-list-item href="/" routerLinkActive="active-link">Home</a>
       <a mat-list-item href="/activities" routerLinkActive="active-link">Activities</a>
       <a mat-list-item href="/user" routerLinkActive="active-link">User Profile</a>
     </mat-nav-list>
   </mat-sidenav>
 
+  <!-- Main content -->
   <mat-sidenav-content>
-    <mat-toolbar color="primary">
+    <mat-toolbar color="primary" class="toolbar">
       <button mat-icon-button (click)="sidenav.toggle()">
         <mat-icon>menu</mat-icon>
       </button>
-      <span style="margin-left: 8px">My Strava Dashboard</span>
+      <span class="toolbar-title">My Stravo Dashboard</span>
     </mat-toolbar>
 
-    <div class="dashboard-content" style="padding: 16px;">
-      <!-- 👇 This is where routed views will appear -->
+    <div class="dashboard-content">
       <router-outlet></router-outlet>
     </div>
 
     <mat-toolbar color="accent" class="dashboard-footer">
-      <span>&copy; Léopold's Strava Dashboard. All rights reserved.</span>
+      <span>&copy; Léopold's Stravo Dashboard. All rights reserved.</span>
     </mat-toolbar>
   </mat-sidenav-content>
-
 </mat-sidenav-container>

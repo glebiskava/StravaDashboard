@@ -1,9 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ActivityListComponent } from './components/activity-list/activity-list.component';
-import { MonthlySummaryComponent } from './components/monthly-summary/monthly-summary.component';
 import { UserProfileComponent } from './components/user-profile/user-profile.component';
-import { WeeklySummaryComponent } from './components/weekly-summary/weekly-summary.component';
 import { HomeComponent } from './components/home/home.component';
 
 const routes: Routes = [

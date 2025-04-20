@@ -1,0 +1,17 @@
+<mat-card *ngIf="vo2maxData" class="vo2max-card">
+    <mat-card-title>VO₂ Max Estimate</mat-card-title>
+    <mat-card-content>
+      <p><strong>Average Resting Heart Rate: </strong> {{ vo2maxData.resting_hr | number: '1.0-0' }} bpm</p>
+      <div class="vo2max-value">
+        <span>{{ vo2maxData.estimated_vo2max | number: '1.1-2' }}</span>
+        <p>ml/kg/min</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  
+  <mat-card *ngIf="!vo2maxData">
+    <mat-card-content>
+      <p>No VO₂ Max data available. Make sure you have activities with heart rate and distance.</p>
+    </mat-card-content>
+  </mat-card>
+  

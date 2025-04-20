@@ -11,6 +11,7 @@ import { MatInputModule } from '@angular/material/input';
   standalone: true,
   imports: [CommonModule, MatFormFieldModule, MatCardModule, FormsModule, MatInputModule],
   templateUrl: './user-profile.component.html',
+  styleUrls: ['./user-profile.component.css']
 })
 export class UserProfileComponent implements OnInit {
   profile = {
