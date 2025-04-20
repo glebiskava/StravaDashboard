@@ -33,3 +33,12 @@ def update_user_profile():
     conn.commit()
     conn.close()
     return jsonify({"message": "Profile updated successfully"})
+
+@user_bp.route("/user/reset", methods=["PUT"])
+def reset_user_profile():
+    conn = sqlite3.connect("strava.db")
+    cursor = conn.cursor()
+    cursor.execute("UPDATE user_profile SET name = '', age = 0, height = 0, weight = 0 WHERE id = 1")
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Profile reset successfully"})

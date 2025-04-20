@@ -1,16 +1,38 @@
-<h2>User Profile</h2>
-<form (ngSubmit)="saveProfile()" #form="ngForm">
-  <label>Name:</label>
-  <input [(ngModel)]="profile.name" name="name" required><br>
+<mat-card class="profile-card" *ngIf="isProfileLoaded">
+  <mat-card-title>User Profile</mat-card-title>
+  <mat-card-content>
+    <form (ngSubmit)="saveProfile()" #form="ngForm" class="profile-form">
 
-  <label>Age:</label>
-  <input type="number" [(ngModel)]="profile.age" name="age"><br>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field color-input">
+          <mat-label>Name</mat-label>
+          <input matInput [(ngModel)]="profile.name" name="name" required>
+        </mat-form-field>
 
-  <label>Height (cm):</label>
-  <input type="number" [(ngModel)]="profile.height" name="height"><br>
+        <mat-form-field appearance="outline" class="form-field color-input">
+          <mat-label>Age</mat-label>
+          <input matInput type="number" [(ngModel)]="profile.age" name="age">
+        </mat-form-field>
+      </div>
 
-  <label>Weight (kg):</label>
-  <input type="number" [(ngModel)]="profile.weight" name="weight"><br>
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field color-input">
+          <mat-label>Height (cm)</mat-label>
+          <input matInput type="number" [(ngModel)]="profile.height" name="height">
+        </mat-form-field>
 
-  <button type="submit">Save</button>
-</form>
+        <mat-form-field appearance="outline" class="form-field color-input">
+          <mat-label>Weight (kg)</mat-label>
+          <input matInput type="number" [(ngModel)]="profile.weight" name="weight">
+        </mat-form-field>
+      </div>
+
+      <div class="button-container">
+        <button mat-raised-button color="primary" type="submit">Save Profile</button>
+        <button mat-raised-button color="warn" type="button" (click)="resetProfile()">Reset Profile</button>
+        <button mat-stroked-button type="button"><a href="">Home</a></button>
+      </div>
+
+    </form>
+  </mat-card-content>
+</mat-card>

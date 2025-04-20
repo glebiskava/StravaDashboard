@@ -14,4 +14,8 @@ export class UserService {
   updateUserProfile(profile: any) {
     return this.http.post(this.apiUrl, profile);
   }
+
+  resetUserProfile(profile: any, p0: {}) {
+    return this.http.put(this.apiUrl + "/reset", profile);
+  }
 }
