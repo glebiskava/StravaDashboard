@@ -9,8 +9,6 @@ import { HomeComponent } from './components/home/home.component';
 const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'activities', component: ActivityListComponent },
-  { path: 'monthly-summary', component: MonthlySummaryComponent },
-  { path: 'weekly-summary', component: WeeklySummaryComponent },
   { path: 'user', component: UserProfileComponent }
 ];
 

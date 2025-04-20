@@ -1,7 +1,11 @@
-<div class="summary-container">
-  <h3>Weekly Summary</h3>
-  <p><strong>Total Distance:</strong> {{ totalDistance | number: '1.1-2' }} km</p>
-  <p><strong>Total Elevation Gain:</strong> {{ totalElevation }} m</p>
-  <p><strong>Total Time:</strong> {{ formatTime(totalTime) }}</p>
-  <button (click)="loadSummary()">Refresh Summary</button>
-</div>
+<mat-card class="summary-card">
+  <mat-card-title>Weekly Summary</mat-card-title>
+  <mat-card-content>
+    <div class="summary-container">
+      <p><strong>Total Distance:</strong> {{ totalDistance | number: '1.1-2' }} km</p>
+      <p><strong>Total Elevation Gain:</strong> {{ totalElevation }} m</p>
+      <p><strong>Total Time:</strong> {{ formatTime(totalTime) }}</p>
+      <button mat-raised-button color="primary" (click)="loadSummary()">Refresh</button>
+    </div>
+  </mat-card-content>
+</mat-card>

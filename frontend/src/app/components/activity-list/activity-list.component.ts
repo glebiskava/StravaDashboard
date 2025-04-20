@@ -4,12 +4,16 @@ import { ActivityService } from '../../services/activity.service';
 import { GoogleMapsLoaderService } from '../../services/google-maps-loader.service';
 import { CommonModule } from '@angular/common';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatPaginator } from '@angular/material/paginator';
+import { MatCardModule } from '@angular/material/card';
+import { MatCardContent } from '@angular/material/card';
+import { MatCardTitle } from '@angular/material/card';
+import { MatCardHeader } from '@angular/material/card';
+
 
 @Component({
   selector: 'app-activity-list',
   standalone: true,
-  imports: [CommonModule, MatPaginatorModule],
+  imports: [CommonModule, MatPaginatorModule, MatCardModule, MatCardContent, MatCardTitle, MatCardHeader],
   templateUrl: './activity-list.component.html',
   styleUrls: ['./activity-list.component.css']
 })

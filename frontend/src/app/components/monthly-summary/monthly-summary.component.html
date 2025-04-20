@@ -1,14 +1,9 @@
-<h3>Top 3 Activity Types Last Month</h3>
-
-<ngx-charts-bar-vertical
-  [results]="summaryData"
-  [xAxis]="true"
-  [yAxis]="true"
-  [legend]="false"
-  schmeme="cool"
-  [animations]="true"
-  [showXAxisLabel]="true"
-  [showYAxisLabel]="true"
-  xAxisLabel="Activity Type"
-  yAxisLabel="Distance (km)">
-</ngx-charts-bar-vertical>
+<mat-card>
+  <mat-card-title>Top 3 Activities Last Month</mat-card-title>
+  <mat-card-content>
+    <ngx-charts-bar-vertical [results]="summaryData" [xAxis]="true" [yAxis]="true" [legend]="false" schmeme="cool"
+      [animations]="true" [showXAxisLabel]="true" [showYAxisLabel]="true" xAxisLabel="Activity Type"
+      yAxisLabel="Distance (km)">
+    </ngx-charts-bar-vertical>
+  </mat-card-content>
+</mat-card>

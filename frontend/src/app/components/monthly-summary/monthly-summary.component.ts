@@ -2,11 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { HttpClient } from '@angular/common/http';
+import { MatCard } from '@angular/material/card';
+import { MatCardContent } from '@angular/material/card';
+import { MatCardTitle } from '@angular/material/card';
+
 
 @Component({
   selector: 'app-monthly-summary',
   standalone: true,
-  imports: [CommonModule, NgxChartsModule],
+  imports: [CommonModule, NgxChartsModule, MatCard, MatCardContent, MatCardTitle],
   templateUrl: './monthly-summary.component.html',
   styleUrl: './monthly-summary.component.css'
 })

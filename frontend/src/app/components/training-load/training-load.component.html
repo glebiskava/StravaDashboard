@@ -1,0 +1,16 @@
+<mat-card>
+  <mat-card-title>Training Load (Last 30 Days)</mat-card-title>
+  <mat-card-content>
+    <ngx-charts-line-chart
+      [results]="chartData"
+      [xAxis]="true"
+      [yAxis]="true"
+      [autoScale]="true"
+      [showXAxisLabel]="true"
+      [showYAxisLabel]="true"
+      [tooltipDisabled]="false"
+      xAxisLabel="Date"
+      yAxisLabel="Load">
+    </ngx-charts-line-chart>
+  </mat-card-content>
+</mat-card>

@@ -1,0 +1,9 @@
+mat-card {
+    margin: 16px;
+  }
+  
+  mat-card-title {
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+  

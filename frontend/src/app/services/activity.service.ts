@@ -21,4 +21,9 @@ export class ActivityService {
   getActivityPolyline(activityId: number): Observable<{ polyline: string }> {
     return this.http.get<{ polyline: string }>(`${this.apiUrl}/activity_polyline/${activityId}`);
   }
+
+  getTrainingLoad(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/summary/training-load`);
+  }
+   
 }

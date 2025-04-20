@@ -1,11 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { StravaService } from '../../services/strava.service';
 import { CommonModule } from '@angular/common';
+import { MatCard } from '@angular/material/card';
+import { MatCardContent } from '@angular/material/card';
+import { MatCardTitle } from '@angular/material/card';
 
 @Component({
   selector: 'app-weekly-summary',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatCard, MatCardContent, MatCardTitle],
   templateUrl: './weekly-summary.component.html',
   styleUrls: ['./weekly-summary.component.css']
 })

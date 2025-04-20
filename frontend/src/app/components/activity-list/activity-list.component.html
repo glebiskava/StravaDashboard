@@ -1,21 +1,25 @@
-<h2>Activities</h2>
-<button (click)="fetchLatestActivities()">Get Latest Activities</button>
+<div class="activities-container">
+  <h2>Activities</h2>
+  <button (click)="fetchLatestActivities()">Get Latest Activities</button>
 
-<mat-paginator
-  [length]="activities.length"
-  [pageSize]="activitiesPerPage"
-  [pageSizeOptions]="[5, 10, 20]"
-  (page)="onPageChange($event)">
-</mat-paginator>
+  <mat-paginator
+    [length]="activities.length"
+    [pageSize]="activitiesPerPage"
+    [pageSizeOptions]="[5, 10, 20]"
+    (page)="onPageChange($event)">
+  </mat-paginator>
 
-<ul>
-  <li *ngFor="let activity of pagedActivities">
-    <h3>{{ activity.name }}</h3>
-    <p><strong>Distance:</strong> {{ activity.distance / 1000 | number: "1.1-2" }} km</p>
-    <p><strong>Time:</strong> {{ formatTime(activity.moving_time) }}</p>
-    <p *ngIf="activity.sport_type == 'TrailRun' || activity.sport_type == 'Ride' || activity.sport_type == 'MountainBikeRide'">
-      <strong>Elevation Gain:</strong> {{ activity.total_elevation_gain }} m
-    </p>
-    <div #mapContainer id="map-{{activity.id}}" class="map-container"></div>
-  </li>
-</ul>
+  <mat-card *ngFor="let activity of pagedActivities" class="activity-card">
+    <mat-card-header>
+      <mat-card-title>{{ activity.name }}</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p><strong>Distance:</strong> {{ activity.distance / 1000 | number: "1.1-2" }} km</p>
+      <p><strong>Time:</strong> {{ formatTime(activity.moving_time) }}</p>
+      <p *ngIf="activity.sport_type == 'TrailRun' || activity.sport_type == 'Ride' || activity.sport_type == 'MountainBikeRide'">
+        <strong>Elevation Gain:</strong> {{ activity.total_elevation_gain }} m
+      </p>
+      <div #mapContainer id="map-{{activity.id}}" class="map-container"></div>
+    </mat-card-content>
+  </mat-card>
+</div>
