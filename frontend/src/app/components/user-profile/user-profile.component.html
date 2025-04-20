@@ -1,0 +1,16 @@
+<h2>User Profile</h2>
+<form (ngSubmit)="saveProfile()" #form="ngForm">
+  <label>Name:</label>
+  <input [(ngModel)]="profile.name" name="name" required><br>
+
+  <label>Age:</label>
+  <input type="number" [(ngModel)]="profile.age" name="age"><br>
+
+  <label>Height (cm):</label>
+  <input type="number" [(ngModel)]="profile.height" name="height"><br>
+
+  <label>Weight (kg):</label>
+  <input type="number" [(ngModel)]="profile.weight" name="weight"><br>
+
+  <button type="submit">Save</button>
+</form>

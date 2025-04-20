@@ -8,6 +8,7 @@ import time
 import json
 
 from summary import summary_bp
+from user import user_bp
 
 load_dotenv()
 
@@ -215,8 +216,9 @@ def get_activity_polyline(activity_id):
     else:
         return jsonify({"error": "Polyline not found"}), 404
 
-# Register the summary blueprint
+# Register the blueprints
 app.register_blueprint(summary_bp)
+app.register_blueprint(user_bp)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
